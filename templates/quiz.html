@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>{{ quiz.title }}</h2>
+    
+    {% if quiz.time_limit_minutes > 0 %}
+        <div class="bg-danger text-white p-2 rounded fw-bold" id="timerDisplay">
+            Zeit verbleibend: --:--
+        </div>
+    {% endif %}
+</div>
+
+<form method="POST" action="/quiz/{{ quiz.id }}/submit" id="quizForm">
+    <input type="hidden" name="question_ids" value="{{ question_ids }}">
+
+    <div id="questionContainer">
+        {% for q in questions %}
+            <div class="card mb-4 question-slide" id="slide-{{ loop.index0 }}" style="display: {% if loop.index0 == 0 %}block{% else %}none{% endif %};">
+                <div class="card-header bg-light fw-bold">
+                    Frage {{ loop.index }} von {{ questions|length }}: {{ q.text }}
+                </div>
+                <div class="card-body">
+                    <!-- Optionen A bis D (immer da) -->
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="A" id="q_{{ q.id }}_A">
+                        <label class="form-check-label" for="q_{{ q.id }}_A">{{ q.opt_a }}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="B" id="q_{{ q.id }}_B">
+                        <label class="form-check-label" for="q_{{ q.id }}_B">{{ q.opt_b }}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="C" id="q_{{ q.id }}_C">
+                        <label class="form-check-label" for="q_{{ q.id }}_C">{{ q.opt_c }}</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="D" id="q_{{ q.id }}_D">
+                        <label class="form-check-label" for="q_{{ q.id }}_D">{{ q.opt_d }}</label>
+                    </div>
+
+                    <!-- Optionen E bis H (werden nur eingeblendet, wenn Text vorhanden ist und nicht "-" lautet) -->
+                    {% if q.opt_e and q.opt_e != '-' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="E" id="q_{{ q.id }}_E">
+                        <label class="form-check-label" for="q_{{ q.id }}_E">{{ q.opt_e }}</label>
+                    </div>
+                    {% endif %}
+
+                    {% if q.opt_f and q.opt_f != '-' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="F" id="q_{{ q.id }}_F">
+                        <label class="form-check-label" for="q_{{ q.id }}_F">{{ q.opt_f }}</label>
+                    </div>
+                    {% endif %}
+
+                    {% if q.opt_g and q.opt_g != '-' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="G" id="q_{{ q.id }}_G">
+                        <label class="form-check-label" for="q_{{ q.id }}_G">{{ q.opt_g }}</label>
+                    </div>
+                    {% endif %}
+
+                    {% if q.opt_h and q.opt_h != '-' %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="H" id="q_{{ q.id }}_H">
+                        <label class="form-check-label" for="q_{{ q.id }}_H">{{ q.opt_h }}</label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between mb-5">
+        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeSlide(-1)" style="display:none;">Zurück</button>
+
+        <div class="ms-auto">
+            <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)" {% if questions|length <= 1 %}style="display:none;"{% endif %}>Weiter</button>
+            <button type="submit" class="btn btn-success" id="submitBtn" style="display:{% if questions|length > 1 %}none{% else %}block{% endif %};">Quiz abgeben</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    let currentSlide = 0;
+    const totalSlides = {{ questions|length }};
+
+    function changeSlide(direction) {
+        document.getElementById('slide-' + currentSlide).style.display = 'none';
+        currentSlide += direction;
+        document.getElementById('slide-' + currentSlide).style.display = 'block';
+
+        document.getElementById('prevBtn').style.display = (currentSlide === 0) ? 'none' : 'block';
+
+        if (currentSlide === totalSlides - 1) {
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+        } else {
+            document.getElementById('nextBtn').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+        }
+    }
+</script>
+
+{% if quiz.time_limit_minutes > 0 %}
+<script>
+    const timeLimitMs = {{ quiz.time_limit_minutes }} * 60 * 1000;
+    const endTime = Date.now() + timeLimitMs;
+
+    const timerInterval = setInterval(function() {
+        const now = Date.now();
+        const distance = endTime - now;
+
+        if (distance <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById("timerDisplay").innerText = "ZEIT ABGELAUFEN!";
+            document.getElementById("quizForm").submit();
+            return;
+        }
+
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        document.getElementById("timerDisplay").innerText = 
+            "Zeit verbleibend: " + 
+            minutes.toString().padStart(2, '0') + ":" + 
+            seconds.toString().padStart(2, '0');
+    }, 1000);
+</script>
+{% endif %}
+{% endblock %}

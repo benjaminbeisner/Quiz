@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Startseite - Quiz Modul{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card bg-primary text-white">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                {% if user %}
+                    <div>
+                        <h4 class="mb-0">Hallo, {{ user.username }}!</h4>
+                        <small>Du bist erfolgreich angemeldet.</small>
+                    </div>
+                    <div>
+                        <a href="/dashboard" class="btn btn-light me-2">📊 Mein Profil / Statistik</a>
+                        {% if user.is_admin %}
+                            <a href="/admin" class="btn btn-dark">⚙️ Admin</a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div>
+                        <h4 class="mb-0">Willkommen im Gast-Bereich</h4>
+                        <small>Melde dich an, um deinen Fortschritt zu speichern.</small>
+                    </div>
+                    <a href="/login" class="btn btn-light">🔑 Anmelden</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-3">Verfügbare Quizzes</h3>
+<div class="row">
+    {% for quiz in quizzes %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <p class="card-text text-muted">
+                        ⏱️ Zeitlimit: {% if quiz.time_limit_minutes > 0 %}{{ quiz.time_limit_minutes }} Min.{% else %}Keins{% endif %}
+                    </p>
+                    <a href="/quiz/{{ quiz.id }}/setup" class="btn btn-success w-100">🚀 Quiz starten</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col">
+            <div class="alert alert-info">Es wurden noch keine Quizzes angelegt.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

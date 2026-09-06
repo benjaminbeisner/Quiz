@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Ergebnis{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card text-center mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Quiz abgeschlossen!</h3>
+            </div>
+            <div class="card-body">
+                <h1 class="display-1">{{ score }} / {{ total }}</h1>
+                <p class="lead">Punkte erreicht</p>
+
+                {% if is_guest %}
+                    <div class="alert alert-warning mt-3">
+                        Du bist als Gast unterwegs. Dein Ergebnis wurde nicht gespeichert. <br>
+                        <a href="/login" class="alert-link">Melde dich an</a>, um deinen Fortschritt zu speichern.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex justify-content-around flex-wrap gap-2">
+                <a href="/" class="btn btn-outline-secondary">Zur Startseite</a>
+                {% if not is_guest %}
+                    <a href="/dashboard" class="btn btn-primary">Zum Dashboard</a>
+                {% endif %}
+                <a href="/quiz/{{ quiz_id }}/setup" class="btn btn-success">Quiz neu starten</a>
+            </div>
+        </div>
+
+        {% if mistakes %}
+            <div class="card border-danger mb-5">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Deine Fehler zur Übersicht</h4>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for m in mistakes %}
+                            <li class="list-group-item p-3">
+                                <h5 class="text-danger">{{ m.text }}</h5>
+                                <div class="mt-2">
+                                    <strong>Richtige Antwort(en):</strong>
+                                    <span class="badge bg-success fs-6">{{ m.correct_answers }}</span>
+                                </div>
+                                <div class="mt-3 small text-muted">
+                                    A: {{ m.opt_a }}<br>
+                                    B: {{ m.opt_b }}<br>
+                                    C: {{ m.opt_c }}<br>
+                                    D: {{ m.opt_d }}<br>
+                                    {% if m.opt_e and m.opt_e != '-' %}E: {{ m.opt_e }}<br>{% endif %}
+                                    {% if m.opt_f and m.opt_f != '-' %}F: {{ m.opt_f }}<br>{% endif %}
+                                    {% if m.opt_g and m.opt_g != '-' %}G: {{ m.opt_g }}<br>{% endif %}
+                                    {% if m.opt_h and m.opt_h != '-' %}H: {{ m.opt_h }}<br>{% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🛠️ Admin Dashboard</h2>
+    <a href="/" class="btn btn-outline-secondary">Zurück zur Startseite</a>
+</div>
+
+<div class="row">
+    <!-- Quiz Verwaltung -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-dark text-white">📚 Quiz Verwaltung</div>
+            <div class="card-body">
+                
+                <h5 class="mb-3">Bestehende Quizzes</h5>
+                <ul class="list-group mb-4">
+                    {% for q in quizzes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <strong>ID {{ q.id }}:</strong> {{ q.title }} <br>
+                                <small class="text-muted">{{ q.time_limit_minutes }} Minuten</small>
+                            </div>
+                            <div>
+                                <a href="/admin/quiz/{{ q.id }}/questions" class="btn btn-sm btn-outline-info me-2">📋 Fragen</a>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editQuizModal{{ q.id }}">
+                                    ✏️ Bearbeiten
+                                </button>
+                            </div>
+                        </li>
+
+                        <!-- Modal für die Bearbeitung des jeweiligen Quizzes -->
+                        <div class="modal fade" id="editQuizModal{{ q.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Quiz bearbeiten</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <form method="POST" action="/admin/edit-quiz/{{ q.id }}">
+                                  <div class="modal-body">
+                                      <div class="mb-3">
+                                          <label class="form-label">Titel</label>
+                                          <input type="text" name="title" class="form-control" value="{{ q.title }}" required>
+                                      </div>
+                                      <div class="mb-3">
+                                          <label class="form-label">Zeitlimit (Minuten)</label>
+                                          <input type="number" name="time_limit" class="form-control" value="{{ q.time_limit_minutes }}" required>
+                                          <small class="text-muted">0 für unbegrenzte Zeit</small>
+                                      </div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                    <button type="submit" class="btn btn-primary">Speichern</button>
+                                  </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                    {% else %}
+                        <li class="list-group-item text-muted">Noch keine Quizzes vorhanden.</li>
+                    {% endfor %}
+                </ul>
+
+                <hr>
+
+                <h5 class="mb-3">Neues Quiz anlegen</h5>
+                <form method="POST" action="/admin/create-quiz" class="mb-4">
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <input type="text" name="title" class="form-control" placeholder="Neuer Quiz Titel" required>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" name="time_limit" class="form-control" placeholder="Minuten (0=endlos)" required>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-success w-100">Quiz erstellen</button>
+                        </div>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <h5 class="mb-3">Fragen per CSV importieren</h5>
+                <form method="POST" action="/admin/upload-csv" enctype="multipart/form-data">
+                    <div class="mb-2">
+                        <select name="quiz_id" class="form-select" required>
+                            <option value="" disabled selected>Quiz auswählen...</option>
+                            {% for q in quizzes %}
+                                <option value="{{ q.id }}">{{ q.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" name="file" class="form-control" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">CSV Hochladen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benutzer Verwaltung -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-dark text-white">👥 Benutzerverwaltung</div>
+            <div class="card-body">
+                <form method="POST" action="/admin/create-user" class="mb-4">
+                    <div class="input-group mb-2">
+                        <input type="text" name="username" class="form-control" placeholder="Benutzername" required autocorrect="off" autocapitalize="off">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0 me-2" type="checkbox" name="is_admin" value="true"> Admin
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Benutzer anlegen (Passwort: QuizMaster#112)</button>
+                </form>
+                
+                <hr>
+                
+                <h5>Registrierte Benutzer</h5>
+                <ul class="list-group">
+                    {% for u in users %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ u.username }}
+                            {% if u.is_admin %}
+                                <span class="badge bg-danger rounded-pill">Admin</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill">User</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

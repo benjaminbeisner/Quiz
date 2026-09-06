@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Fragen verwalten - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📋 Fragen: {{ quiz.title }}</h2>
+    <a href="/admin" class="btn btn-outline-secondary">Zurück zur Übersicht</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {% for q in questions %}
+                <li class="list-group-item p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>{{ loop.index }}. {{ q.text }}</strong><br>
+                            <small class="text-muted">A: {{ q.opt_a }} | B: {{ q.opt_b }} | C: {{ q.opt_c }} | D: {{ q.opt_d }}</small><br>
+                            {% if q.opt_e != '-' %}<small class="text-muted">E: {{ q.opt_e }}</small><br>{% endif %}
+                            {% if q.opt_f != '-' %}<small class="text-muted">F: {{ q.opt_f }}</small><br>{% endif %}
+                            {% if q.opt_g != '-' %}<small class="text-muted">G: {{ q.opt_g }}</small><br>{% endif %}
+                            {% if q.opt_h != '-' %}<small class="text-muted">H: {{ q.opt_h }}</small><br>{% endif %}
+                            <span class="badge bg-success mt-1">Lösung: {{ q.correct_answers }}</span>
+                        </div>
+                        <button class="btn btn-sm btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#editQuestionModal{{ q.id }}">Bearbeiten</button>
+                    </div>
+                </li>
+
+                <!-- Modal für diese Frage -->
+                <div class="modal fade" id="editQuestionModal{{ q.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Frage bearbeiten</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <form method="POST" action="/admin/quiz/{{ quiz.id }}/edit-question/{{ q.id }}">
+                          <div class="modal-body">
+                              <div class="mb-3">
+                                  <label class="form-label">Fragentext</label>
+                                  <textarea name="text" class="form-control" rows="2" required>{{ q.text }}</textarea>
+                              </div>
+                              <div class="row">
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option A</label>
+                                      <input type="text" name="opt_a" class="form-control" value="{{ q.opt_a }}" required>
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option B</label>
+                                      <input type="text" name="opt_b" class="form-control" value="{{ q.opt_b }}" required>
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option C</label>
+                                      <input type="text" name="opt_c" class="form-control" value="{{ q.opt_c }}" required>
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option D</label>
+                                      <input type="text" name="opt_d" class="form-control" value="{{ q.opt_d }}" required>
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option E</label>
+                                      <input type="text" name="opt_e" class="form-control" value="{{ q.opt_e }}">
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option F</label>
+                                      <input type="text" name="opt_f" class="form-control" value="{{ q.opt_f }}">
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option G</label>
+                                      <input type="text" name="opt_g" class="form-control" value="{{ q.opt_g }}">
+                                  </div>
+                                  <div class="col-md-6 mb-2">
+                                      <label class="form-label">Option H</label>
+                                      <input type="text" name="opt_h" class="form-control" value="{{ q.opt_h }}">
+                                  </div>
+                              </div>
+                              <div class="mb-3 mt-2">
+                                  <label class="form-label fw-bold text-success">Richtige Antwort(en) (z.B. "A, B")</label>
+                                  <input type="text" name="correct_answers" class="form-control border-success" value="{{ q.correct_answers }}" required>
+                              </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                            <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+                          </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+            {% else %}
+                <li class="list-group-item text-center p-4">Es sind noch keine Fragen in diesem Quiz vorhanden.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

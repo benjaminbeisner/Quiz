@@ -1,0 +1,22 @@
+quiz_projekt/
+│
+├── app/
+│   ├── __init__.py          (bleibt leer)
+│   ├── database.py
+│   ├── models.py
+│   ├── security.py
+│   ├── dependencies.py
+│   ├── main.py
+│   │
+│   └── routers/
+│       ├── __init__.py      (bleibt leer)
+│       ├── auth.py
+│       └── admin.py
+│
+├── templates/
+│   ├── index.html
+│   ├── login.html
+│   ├── first_login.html
+│   └── admin.html
+│
+└── requirements.txt

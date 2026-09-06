@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Mein Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Mein Dashboard</h2>
+    <a href="/" class="btn btn-outline-secondary">Zurück zur Startseite</a>
+</div>
+
+<div class="row">
+    <!-- Historie -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">Letzte Ergebnisse</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for r in results %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ quiz_dict.get(r.quiz_id, "Unbekanntes Quiz") }}</strong><br>
+                                <small class="text-muted">{{ r.timestamp.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill fs-6">{{ r.score }} / {{ r.total }}</span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted">Noch keine Quizzes absolviert.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wiederholung falscher Fragen -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">Wiederholung (Falsche Antworten)</div>
+            <div class="card-body">
+                <p class="text-muted small">Hier werden Fragen gesammelt, die du falsch beantwortet hast. Beantwortest du sie bei der Wiederholung richtig, verschwinden sie aus der Liste.</p>
+                <ul class="list-group">
+                    {% for quiz, question_ids in mistakes_by_quiz.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ quiz.title }}</strong><br>
+                                <span class="text-danger">{{ question_ids|length }} Fragen zu üben</span>
+                            </div>
+                            <form method="POST" action="/dashboard/repeat/{{ quiz.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Jetzt wiederholen</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <div class="alert alert-success">Perfekt! Du hast keine offenen Fehler zum Wiederholen.</div>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

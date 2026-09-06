@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Passwort ändern{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-3">Willkommen!</h3>
+                <p class="text-center text-muted mb-4">Bitte ändere dein Passwort, um fortzufahren.</p>
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                <div class="alert alert-warning" style="font-size: 0.9em;">
+                    <strong>Vorgaben:</strong> Min. 8 Zeichen, 1 Großbuchstabe, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen.
+                </div>
+
+                <form method="POST" action="/first-login">
+                    <label class="form-label">Altes Passwort</label>
+                    <div class="input-group mb-3">
+                        <input type="password" id="old_password" name="old_password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePw('old_password')">👁️</button>
+                    </div>
+
+                    <label class="form-label">Neues Passwort</label>
+                    <div class="input-group mb-3">
+                        <input type="password" id="new_password" name="new_password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePw('new_password')">👁️</button>
+                    </div>
+
+                    <label class="form-label">Neues Passwort bestätigen</label>
+                    <div class="input-group mb-4">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePw('confirm_password')">👁️</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Speichern & Einloggen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePw(fieldId) {
+        const pwField = document.getElementById(fieldId);
+        pwField.type = pwField.type === "password" ? "text" : "password";
+    }
+</script>
+{% endblock %}
