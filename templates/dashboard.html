@@ -3,28 +3,32 @@
 {% block title %}Mein Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📊 Mein Dashboard</h2>
-    <a href="/" class="btn btn-outline-secondary">Zurück zur Startseite</a>
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h2 class="fw-bold mb-0">📊 Mein Profil & Statistiken</h2>
+    <a href="/" class="btn btn-outline-secondary">Zur Startseite</a>
 </div>
 
-<div class="row">
+<div class="row g-4">
     <!-- Historie -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-primary text-white">Letzte Ergebnisse</div>
-            <div class="card-body">
-                <ul class="list-group">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white fw-bold py-3">Letzte Ergebnisse</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
                     {% for r in results %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
                             <div>
-                                <strong>{{ quiz_dict.get(r.quiz_id, "Unbekanntes Quiz") }}</strong><br>
-                                <small class="text-muted">{{ r.timestamp.strftime('%d.%m.%Y %H:%M') }}</small>
+                                <strong class="fs-6">{{ quiz_dict.get(r.quiz_id, "Unbekanntes Quiz") }}</strong><br>
+                                <small class="text-muted">{{ r.timestamp.strftime('%d.%m.%Y %H:%M') }} Uhr</small>
                             </div>
-                            <span class="badge bg-success rounded-pill fs-6">{{ r.score }} / {{ r.total }}</span>
+                            <div class="text-end">
+                                <span class="badge {% if r.score == r.total %}bg-success{% elif r.score > (r.total/2) %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill fs-6 px-3 py-2">
+                                    {{ r.score }} / {{ r.total }}
+                                </span>
+                            </div>
                         </li>
                     {% else %}
-                        <li class="list-group-item text-muted">Noch keine Quizzes absolviert.</li>
+                        <li class="list-group-item text-muted p-4 text-center">Noch keine Quizzes absolviert.</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -32,26 +36,27 @@
     </div>
 
     <!-- Wiederholung falscher Fragen -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-danger text-white">Wiederholung (Falsche Antworten)</div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-danger text-white fw-bold py-3">Wissenslücken füllen</div>
             <div class="card-body">
-                <p class="text-muted small">Hier werden Fragen gesammelt, die du falsch beantwortet hast. Beantwortest du sie bei der Wiederholung richtig, verschwinden sie aus der Liste.</p>
-                <ul class="list-group">
+                <p class="text-muted small mb-4">Hier siehst du, in welchen Quizzes du noch offene Fehler hast. Wähle das Quiz aus und starte es im Fehler-Modus, um hartnäckige Lücken zu schließen.</p>
+                <div class="list-group">
                     {% for quiz, question_ids in mistakes_by_quiz.items() %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
                             <div>
-                                <strong>{{ quiz.title }}</strong><br>
-                                <span class="text-danger">{{ question_ids|length }} Fragen zu üben</span>
+                                <h6 class="mb-1 fw-bold">{{ quiz.title }}</h6>
+                                <span class="text-danger small"><i class="bi bi-exclamation-triangle"></i> {{ question_ids|length }} Fehler zum Üben</span>
                             </div>
-                            <form method="POST" action="/dashboard/repeat/{{ quiz.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Jetzt wiederholen</button>
-                            </form>
-                        </li>
+                            <a href="/quiz/{{ quiz.id }}/setup" class="btn btn-sm btn-outline-danger px-3">Gezielt üben</a>
+                        </div>
                     {% else %}
-                        <div class="alert alert-success">Perfekt! Du hast keine offenen Fehler zum Wiederholen.</div>
+                        <div class="alert alert-success text-center py-4 border-success">
+                            <h4 class="alert-heading">Perfekt! 🏆</h4>
+                            <p class="mb-0">Du hast alle deine Fehler erfolgreich korrigiert.</p>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>

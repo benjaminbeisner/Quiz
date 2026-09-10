@@ -3,61 +3,85 @@
 {% block title %}Quiz Ergebnis{% endblock %}
 
 {% block content %}
+<style>
+    /* Garantierte Pastell-Farben für die Auswertung */
+    .pastel-success {
+        background-color: #d1e7dd !important;
+        border-color: #badbcc !important;
+        color: #0f5132 !important;
+    }
+    .pastel-danger {
+        background-color: #f8d7da !important;
+        border-color: #f5c2c7 !important;
+        color: #842029 !important;
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card text-center mb-4">
-            <div class="card-header bg-success text-white">
+        <div class="card text-center shadow-sm border-0 mb-4">
+            <div class="card-header bg-success text-white py-3">
                 <h3 class="mb-0">Quiz abgeschlossen!</h3>
             </div>
-            <div class="card-body">
-                <h1 class="display-1">{{ score }} / {{ total }}</h1>
-                <p class="lead">Punkte erreicht</p>
+            <div class="card-body py-5">
+                <h1 class="display-1 fw-bold">{{ score }} / {{ total }}</h1>
+                <p class="lead text-muted">Punkte erreicht</p>
 
                 {% if is_guest %}
-                    <div class="alert alert-warning mt-3">
+                    <div class="alert alert-warning mt-4">
                         Du bist als Gast unterwegs. Dein Ergebnis wurde nicht gespeichert. <br>
-                        <a href="/login" class="alert-link">Melde dich an</a>, um deinen Fortschritt zu speichern.
+                        <a href="/login" class="alert-link">Melde dich an</a>, um deinen Fortschritt dauerhaft zu sichern.
                     </div>
                 {% endif %}
             </div>
-            <div class="card-footer d-flex justify-content-around flex-wrap gap-2">
-                <a href="/" class="btn btn-outline-secondary">Zur Startseite</a>
+            <div class="card-footer bg-white py-3 d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/" class="btn btn-outline-secondary px-4">Startseite</a>
                 {% if not is_guest %}
-                    <a href="/dashboard" class="btn btn-primary">Zum Dashboard</a>
+                    <a href="/dashboard" class="btn btn-primary px-4">Mein Dashboard</a>
                 {% endif %}
-                <a href="/quiz/{{ quiz_id }}/setup" class="btn btn-success">Quiz neu starten</a>
+                <a href="/quiz/{{ quiz_id }}/setup" class="btn btn-success px-4">Erneut versuchen</a>
             </div>
         </div>
 
         {% if mistakes %}
-            <div class="card border-danger mb-5">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Deine Fehler zur Übersicht</h4>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        {% for m in mistakes %}
-                            <li class="list-group-item p-3">
-                                <h5 class="text-danger">{{ m.text }}</h5>
-                                <div class="mt-2">
-                                    <strong>Richtige Antwort(en):</strong>
-                                    <span class="badge bg-success fs-6">{{ m.correct_answers }}</span>
-                                </div>
-                                <div class="mt-3 small text-muted">
-                                    A: {{ m.opt_a }}<br>
-                                    B: {{ m.opt_b }}<br>
-                                    C: {{ m.opt_c }}<br>
-                                    D: {{ m.opt_d }}<br>
-                                    {% if m.opt_e and m.opt_e != '-' %}E: {{ m.opt_e }}<br>{% endif %}
-                                    {% if m.opt_f and m.opt_f != '-' %}F: {{ m.opt_f }}<br>{% endif %}
-                                    {% if m.opt_g and m.opt_g != '-' %}G: {{ m.opt_g }}<br>{% endif %}
-                                    {% if m.opt_h and m.opt_h != '-' %}H: {{ m.opt_h }}<br>{% endif %}
-                                </div>
-                            </li>
+            <h4 class="mb-3 mt-5 border-bottom pb-2">Deine falschen Antworten im Detail</h4>
+            {% for m in mistakes %}
+                {% set u_ans = user_answers.get(m.id|string, []) %}
+                {% set c_ans = m.correct_answers.split(',') %}
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white fw-bold">
+                        {{ m.text }}
+                    </div>
+                    <div class="card-body bg-light p-3">
+
+                        {% for letter, text in [('A', m.opt_a), ('B', m.opt_b), ('C', m.opt_c), ('D', m.opt_d), ('E', m.opt_e), ('F', m.opt_f), ('G', m.opt_g), ('H', m.opt_h)] %}
+                            {% if text and text != '-' %}
+                                {% set is_correct = letter in c_ans %}
+                                {% set is_selected = letter in u_ans %}
+
+                                {% if is_correct %}
+                                    <!-- Korrekte Antwort in Pastell-Grün ohne Buchstabe -->
+                                    <div class="p-2 mb-2 rounded pastel-success fw-bold border">
+                                        <i class="bi bi-check-circle"></i> {{ text }}
+                                    </div>
+                                {% elif is_selected %}
+                                    <!-- Falsche Antwort in Pastell-Rot ohne Buchstabe -->
+                                    <div class="p-2 mb-2 rounded pastel-danger border">
+                                        <i class="bi bi-x-circle"></i> {{ text }} (Deine Antwort)
+                                    </div>
+                                {% else %}
+                                    <!-- Neutrale Antwort -->
+                                    <div class="p-2 mb-2 rounded bg-white border">
+                                        {{ text }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
                         {% endfor %}
-                    </ul>
+
+                    </div>
                 </div>
-            </div>
+            {% endfor %}
         {% endif %}
     </div>
 </div>

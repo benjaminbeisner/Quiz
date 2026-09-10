@@ -1,59 +1,64 @@
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
-from app.database import user_engine, UserBase
+from app.database import user_engine, UserSessionLocal
+from app import models
 from app.dependencies import get_db, get_current_user
-from app.models import User, Quiz
+from app.routers import auth, dashboard, quiz, admin, register
 from app.security import get_password_hash
-from app.routers import auth, admin, quiz, dashboard
 
-UserBase.metadata.create_all(bind=user_engine)
+# Tabellen automatisch generieren
+models.UserBase.metadata.create_all(bind=user_engine)
 
-app = FastAPI(title="Quiz Webanwendung")
-app.add_middleware(SessionMiddleware, secret_key="super-secret-key-112")
+# Standard-Admin "Benny" anlegen, falls er nicht existiert
+db_session = UserSessionLocal()
+if not db_session.query(models.User).filter(models.User.username == "Benny").first():
+    default_admin = models.User(
+        username="Benny",
+        password_hash=get_password_hash("QuizMaster#112"),
+        is_admin=True,
+        must_change_password=True
+    )
+    db_session.add(default_admin)
+    db_session.commit()
+db_session.close()
+
+app = FastAPI(title="Quiz Server")
+
+app.add_middleware(SessionMiddleware, secret_key="super-secret-quiz-key-112")
 templates = Jinja2Templates(directory="templates")
 
 app.include_router(auth.router)
-app.include_router(admin.router)
-app.include_router(quiz.router)
 app.include_router(dashboard.router)
+app.include_router(quiz.router)
+app.include_router(admin.router)
+app.include_router(register.router)
 
-
-def init_admin():
-    db = next(get_db())
-    if not db.query(User).filter(User.username == "admin").first():
-        admin_user = User(
-            username="admin",
-            password_hash=get_password_hash("QuizMaster#112"),
-            is_admin=True,
-            must_change_password=True
-        )
-        db.add(admin_user)
-        db.commit()
-
-
-init_admin()
-
+# 100% sicherer Fallback für leere Quiz-Aufrufe direkt auf App-Ebene
+@app.get("/quiz", include_in_schema=False)
+@app.get("/quiz/", include_in_schema=False)
+async def redirect_quiz_base():
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, db: Session = Depends(get_db)):
+async def read_root(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
-    quizzes = db.query(Quiz).all()
+    all_quizzes = db.query(models.Quiz).all()
 
-    if user and user.must_change_password:
-        return RedirectResponse(url="/first-login")
+    if user:
+        if user.is_admin:
+            visible_quizzes = all_quizzes
+        else:
+            user_cat_ids = [c.id for c in user.categories]
+            visible_quizzes = [q for q in all_quizzes if q.category_id in user_cat_ids]
+    else:
+        visible_quizzes = [q for q in all_quizzes if q.category and q.category.is_for_guests]
 
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"request": request, "user": user, "quizzes": quizzes}
+        context={"request": request, "quizzes": visible_quizzes, "user": user}
     )
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

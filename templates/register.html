@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Registrierung{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0">Registrierung anfragen</h4>
+            </div>
+            <div class="card-body p-4">
+                {% if success %}
+                    <div class="alert alert-success text-center">
+                        <h5 class="alert-heading fw-bold">Anfrage erfolgreich gesendet! 🚀</h5>
+                        <p class="mb-0 mt-2">Wir haben dir eine Eingangsbestätigung per E-Mail geschickt.<br><br>Dieses Projekt wird rein privat und ehrenamtlich für die Feuerwehr verwaltet. Alle Anfragen werden manuell geprüft, daher kann es einen Moment dauern, bis dein Account freigeschaltet wird. Du erhältst eine weitere E-Mail, sobald du dich einloggen kannst.</p>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/" class="btn btn-primary px-4 fw-bold">Zurück zur Startseite</a>
+                    </div>
+                {% else %}
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <div class="alert alert-info small text-center mb-4">
+                        <strong>Hinweis:</strong> Dieses Projekt wird ehrenamtlich verwaltet. Nach der Registrierung wird dein Account manuell freigeschaltet. Dies kann etwas Zeit in Anspruch nehmen.
+                    </div>
+
+                    <form method="POST" action="/register/">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Vorname</label>
+                                <input type="text" name="first_name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nachname</label>
+                                <input type="text" name="last_name" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">E-Mail Adresse</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Wofür möchtest Du das Quiz nutzen?</label>
+                            <input type="text" name="usage_intent" class="form-control" placeholder="z.B. Vorbereitung Truppmann, Jugendfeuerwehr, privat...">
+                        </div>
+
+                        <hr>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Wunsch-Benutzername</label>
+                                <input type="text" name="username" class="form-control" required autocorrect="off" autocapitalize="off">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Passwort</label>
+                                <input type="password" name="password" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Welche Themenbereiche interessieren dich?</label>
+                            <div class="bg-light p-3 rounded border">
+                                {% for c in categories %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="category_ids" value="{{ c.id }}" id="cat_{{ c.id }}">
+                                    <label class="form-check-label" for="cat_{{ c.id }}">{{ c.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-bold mb-3 py-2">Anfrage absenden</button>
+                    </form>
+                    <div class="text-center">
+                        <a href="/login" class="text-decoration-none">Ich habe bereits einen Account</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

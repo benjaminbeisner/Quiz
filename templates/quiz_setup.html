@@ -5,34 +5,72 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <div class="card mt-4">
-            <div class="card-header bg-dark text-white">
-                <h4 class="mb-0">{{ quiz.title }} konfigurieren</h4>
+        <div class="card mt-4 shadow-sm border-0">
+            <div class="card-header bg-dark text-white text-center">
+                <h4 class="mb-0">{{ quiz.title }}</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% if error %}
                     <div class="alert alert-warning">{{ error }}</div>
                 {% endif %}
 
-                <p>Dieses Quiz enthält insgesamt <strong>{{ total_questions }}</strong> Fragen.</p>
+                <p class="text-center text-muted mb-4">Dieses Quiz enthält insgesamt <strong>{{ total_questions }}</strong> Fragen.</p>
 
                 <form method="POST" action="/quiz/{{ quiz.id }}/run">
-                    <div class="mb-4">
-                        <label class="form-label">Wie viele Fragen möchtest du beantworten?</label>
+
+                    {% if user %}
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <label class="form-label fw-bold">Welche Fragen möchtest du üben?</label>
+                        <select name="repeat_mode" class="form-select" id="repeatModeSelect">
+                            <option value="all">Alle Fragen aus dem Quiz</option>
+                            {% if mistakes_count > 0 %}
+                                <option value="mistakes_all">Nur meine bisherigen Fehler ({{ mistakes_count }} Fragen)</option>
+                            {% endif %}
+                            {% if frequent_mistakes_count > 0 %}
+                                <option value="mistakes_frequent">Nur meine hartnäckigen Fehler (>1x falsch) ({{ frequent_mistakes_count }} Fragen)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4" id="limitSelection">
+                        <label class="form-label fw-bold">Anzahl der Fragen pro Durchgang:</label>
                         <select name="limit" class="form-select" required>
+                            <option value="all">Alle verfügbaren Fragen</option>
+                            <option value="10" {% if total_questions < 10 %}disabled{% endif %}>10 Fragen</option>
                             <option value="20" {% if total_questions < 20 %}disabled{% endif %}>20 Fragen</option>
                             <option value="50" {% if total_questions < 50 %}disabled{% endif %}>50 Fragen</option>
-                            <option value="all">Alle Fragen ({{ total_questions }})</option>
                         </select>
                     </div>
 
+                    <div class="mb-5 form-check form-switch fs-5">
+                        <input class="form-check-input" type="checkbox" id="immediateSolution" name="immediate_solution" value="1">
+                        <label class="form-check-label" for="immediateSolution">Lösung sofort nach jeder Frage anzeigen</label>
+                    </div>
+
                     <div class="d-flex justify-content-between">
-                        <a href="/" class="btn btn-outline-secondary">Abbrechen</a>
-                        <button type="submit" class="btn btn-success" {% if total_questions == 0 %}disabled{% endif %}>Loslegen!</button>
+                        <a href="/" class="btn btn-outline-secondary px-4">Zurück</a>
+                        <button type="submit" class="btn btn-success px-4" {% if total_questions == 0 %}disabled{% endif %}>Quiz Starten 🚀</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Blendet die Frage-Limitierung aus, wenn gezielt Fehler wiederholt werden
+    const repeatSelect = document.getElementById('repeatModeSelect');
+    const limitSelection = document.getElementById('limitSelection');
+
+    if(repeatSelect) {
+        repeatSelect.addEventListener('change', function() {
+            if(this.value === 'all') {
+                limitSelection.style.display = 'block';
+            } else {
+                limitSelection.style.display = 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}

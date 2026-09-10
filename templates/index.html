@@ -3,51 +3,81 @@
 {% block title %}Startseite - Quiz Modul{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <div class="card bg-primary text-white">
-            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
-                {% if user %}
-                    <div>
-                        <h4 class="mb-0">Hallo, {{ user.username }}!</h4>
-                        <small>Du bist erfolgreich angemeldet.</small>
-                    </div>
-                    <div>
-                        <a href="/dashboard" class="btn btn-light me-2">📊 Mein Profil / Statistik</a>
-                        {% if user.is_admin %}
-                            <a href="/admin" class="btn btn-dark">⚙️ Admin</a>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div>
-                        <h4 class="mb-0">Willkommen im Gast-Bereich</h4>
-                        <small>Melde dich an, um deinen Fortschritt zu speichern.</small>
-                    </div>
-                    <a href="/login" class="btn btn-light">🔑 Anmelden</a>
-                {% endif %}
-            </div>
+<!-- Willkommens-Bereich -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="p-5 text-center bg-light rounded-3 shadow-sm border">
+            {% if user %}
+                <h2 class="fw-bold mb-3">Hallo {{ user.username }}! 👋</h2>
+                <p class="lead text-muted mb-4">Bereit für die nächste Runde? Wähle ein Quiz aus und verbessere deinen Score.</p>
+                <div>
+                    <a href="/dashboard" class="btn btn-primary btn-lg px-4 me-md-2 shadow-sm">📊 Meine Statistiken</a>
+                    {% if user.is_admin %}
+                        <a href="/admin" class="btn btn-outline-dark btn-lg px-4 shadow-sm">⚙️ Admin Bereich</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <h2 class="fw-bold mb-3">Willkommen beim Quiz! 🚒</h2>
+                <p class="lead text-muted mb-4">Teste dein Wissen als Gast oder melde dich an, um Fehler gezielt zu wiederholen.</p>
+                <a href="/login" class="btn btn-success btn-lg px-5 shadow-sm">🔑 Jetzt Anmelden</a>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<h3 class="mb-3">Verfügbare Quizzes</h3>
-<div class="row">
+<h3 class="mb-4 fw-bold border-bottom pb-2">Verfügbare Quizzes</h3>
+
+<!-- Quiz Kacheln (Cards) im Grid -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
     {% for quiz in quizzes %}
-        <div class="col-md-4 mb-3">
-            <div class="card h-100">
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            {{ quiz.category.name if quiz.category else 'Allgemein' }}
+                        </span>
+                        {% if quiz.time_limit_minutes > 0 %}
+                            <span class="text-danger small fw-bold">⏱️ {{ quiz.time_limit_minutes }} Min.</span>
+                        {% else %}
+                            <span class="text-success small fw-bold">♾️ Ohne Zeitlimit</span>
+                        {% endif %}
+                    </div>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ quiz.title }}</h5>
-                    <p class="card-text text-muted">
-                        ⏱️ Zeitlimit: {% if quiz.time_limit_minutes > 0 %}{{ quiz.time_limit_minutes }} Min.{% else %}Keins{% endif %}
-                    </p>
-                    <a href="/quiz/{{ quiz.id }}/setup" class="btn btn-success w-100">🚀 Quiz starten</a>
+                    <h5 class="card-title fw-bold mt-2">{{ quiz.title }}</h5>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-4 pt-0">
+                    <a href="/quiz/{{ quiz.id }}/setup" class="btn btn-outline-success w-100 fw-bold">Starten 🚀</a>
                 </div>
             </div>
         </div>
     {% else %}
-        <div class="col">
-            <div class="alert alert-info">Es wurden noch keine Quizzes angelegt.</div>
+        <div class="col-12">
+            <div class="alert alert-info py-4 text-center">
+                Es wurden für dich noch keine Quizzes freigeschaltet.
+            </div>
         </div>
     {% endfor %}
 </div>
+
+<!-- Spendenhinweis -->
+<div class="row mt-4 mb-3">
+    <div class="col-12">
+        <div class="alert alert-secondary text-center small shadow-sm border-0" role="alert">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+            Diese Anwendung wurde mit Unterstützung von Künstlicher Intelligenz entwickelt und kommt in vollem Umfang der <strong>Stadtjugendfeuerwehr Bad Münder</strong> zugute. Wenn dir das Tool beim Lernen hilft, freuen wir uns über eine kleine Spende zur Förderung unseres Feuerwehrnachwuchses.
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition-all {
+        transition: all .3s ease-in-out;
+    }
+</style>
 {% endblock %}
