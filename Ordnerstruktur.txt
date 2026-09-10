@@ -6,17 +6,29 @@ quiz_projekt/
 │   ├── models.py
 │   ├── security.py
 │   ├── dependencies.py
+│   ├── mailer.py
 │   ├── main.py
 │   │
 │   └── routers/
 │       ├── __init__.py      (bleibt leer)
+│       ├── dashboard.py
 │       ├── auth.py
+│       ├── quiz.py
+│       ├── register.py
 │       └── admin.py
 │
 ├── templates/
+│   ├── admin_questions.html
+│   ├── base.html
+│   ├── change_password.html
+│   ├── dashboard.html
 │   ├── index.html
 │   ├── login.html
 │   ├── first_login.html
+│   ├── quiz.html
+│   ├── quiz_result.html
+│   ├── quiz_setup.html
+│   ├── register.html
 │   └── admin.html
 │
 └── requirements.txt

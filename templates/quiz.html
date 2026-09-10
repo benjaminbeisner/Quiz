@@ -3,9 +3,37 @@
 {% block title %}Quiz: {{ quiz.title }}{% endblock %}
 
 {% block content %}
+<style>
+    /* Styling für die angeklickten Boxen vor der Auswertung */
+    .btn-check:checked + .custom-check-label {
+        background-color: #f8f9fa;
+        border-color: #0d6efd !important;
+        border-width: 2px !important;
+        color: #000;
+    }
+    .custom-check-label {
+        transition: all 0.2s ease-in-out;
+    }
+    .custom-check-label:hover {
+        background-color: #f1f3f5;
+    }
+
+    /* Garantierte Pastell-Farben für die Auswertung */
+    .pastel-success {
+        background-color: #d1e7dd !important;
+        border-color: #badbcc !important;
+        color: #0f5132 !important;
+    }
+    .pastel-danger {
+        background-color: #f8d7da !important;
+        border-color: #f5c2c7 !important;
+        color: #842029 !important;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>{{ quiz.title }}</h2>
-    
+
     {% if quiz.time_limit_minutes > 0 %}
         <div class="bg-danger text-white p-2 rounded fw-bold" id="timerDisplay">
             Zeit verbleibend: --:--
@@ -13,74 +41,49 @@
     {% endif %}
 </div>
 
+<div class="progress mb-4" style="height: 10px;">
+  <div class="progress-bar bg-success" id="quizProgress" role="progressbar" style="width: 0%;"></div>
+</div>
+
 <form method="POST" action="/quiz/{{ quiz.id }}/submit" id="quizForm">
     <input type="hidden" name="question_ids" value="{{ question_ids }}">
 
     <div id="questionContainer">
         {% for q in questions %}
-            <div class="card mb-4 question-slide" id="slide-{{ loop.index0 }}" style="display: {% if loop.index0 == 0 %}block{% else %}none{% endif %};">
-                <div class="card-header bg-light fw-bold">
+            <div class="card shadow-sm mb-4 question-slide border-0" id="slide-{{ loop.index0 }}" style="display: {% if loop.index0 == 0 %}block{% else %}none{% endif %};" data-correct="{{ q.correct_answers }}">
+                <div class="card-header bg-dark text-white fw-bold py-3 fs-5">
                     Frage {{ loop.index }} von {{ questions|length }}: {{ q.text }}
                 </div>
-                <div class="card-body">
-                    <!-- Optionen A bis D (immer da) -->
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="A" id="q_{{ q.id }}_A">
-                        <label class="form-check-label" for="q_{{ q.id }}_A">{{ q.opt_a }}</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="B" id="q_{{ q.id }}_B">
-                        <label class="form-check-label" for="q_{{ q.id }}_B">{{ q.opt_b }}</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="C" id="q_{{ q.id }}_C">
-                        <label class="form-check-label" for="q_{{ q.id }}_C">{{ q.opt_c }}</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="D" id="q_{{ q.id }}_D">
-                        <label class="form-check-label" for="q_{{ q.id }}_D">{{ q.opt_d }}</label>
-                    </div>
+                <div class="card-body p-4 fs-5">
+                    {% for letter, text in q.shuffled_options %}
+                    <div class="mb-3">
+                        <input class="btn-check" type="checkbox" name="q_{{ q.id }}" value="{{ letter }}" id="q_{{ q.id }}_{{ letter }}" autocomplete="off">
 
-                    <!-- Optionen E bis H (werden nur eingeblendet, wenn Text vorhanden ist und nicht "-" lautet) -->
-                    {% if q.opt_e and q.opt_e != '-' %}
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="E" id="q_{{ q.id }}_E">
-                        <label class="form-check-label" for="q_{{ q.id }}_E">{{ q.opt_e }}</label>
+                        <label class="btn btn-outline-secondary w-100 text-start p-3 shadow-sm border custom-check-label" for="q_{{ q.id }}_{{ letter }}" id="container_{{ q.id }}_{{ letter }}">
+                            <div class="d-flex align-items-center">
+                                <!-- Buchstabe entfernt, nur noch der Antworttext wird angezeigt -->
+                                <span>{{ text }}</span>
+                            </div>
+                        </label>
                     </div>
-                    {% endif %}
-
-                    {% if q.opt_f and q.opt_f != '-' %}
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="F" id="q_{{ q.id }}_F">
-                        <label class="form-check-label" for="q_{{ q.id }}_F">{{ q.opt_f }}</label>
-                    </div>
-                    {% endif %}
-
-                    {% if q.opt_g and q.opt_g != '-' %}
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="G" id="q_{{ q.id }}_G">
-                        <label class="form-check-label" for="q_{{ q.id }}_G">{{ q.opt_g }}</label>
-                    </div>
-                    {% endif %}
-
-                    {% if q.opt_h and q.opt_h != '-' %}
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="H" id="q_{{ q.id }}_H">
-                        <label class="form-check-label" for="q_{{ q.id }}_H">{{ q.opt_h }}</label>
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         {% endfor %}
     </div>
 
-    <!-- Navigation -->
     <div class="d-flex justify-content-between mb-5">
-        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeSlide(-1)" style="display:none;">Zurück</button>
+        <button type="button" class="btn btn-secondary px-4" id="prevBtn" onclick="changeSlide(-1)" style="display:none;">Zurück</button>
 
         <div class="ms-auto">
-            <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)" {% if questions|length <= 1 %}style="display:none;"{% endif %}>Weiter</button>
-            <button type="submit" class="btn btn-success" id="submitBtn" style="display:{% if questions|length > 1 %}none{% else %}block{% endif %};">Quiz abgeben</button>
+            {% if immediate_solution %}
+                <button type="button" class="btn btn-warning px-4 fw-bold" id="checkBtn" onclick="processImmediateSolution()">Auswerten</button>
+                <button type="button" class="btn btn-primary px-4" id="nextBtn" onclick="changeSlide(1)" style="display:none;">Weiter</button>
+            {% else %}
+                <button type="button" class="btn btn-primary px-4" id="nextBtn" onclick="changeSlide(1)" {% if questions|length <= 1 %}style="display:none;"{% endif %}>Weiter</button>
+            {% endif %}
+
+            <button type="button" class="btn btn-success px-4" id="submitBtn" onclick="submitQuiz()" style="display:{% if questions|length > 1 %}none{% else %}block{% endif %};">Quiz abgeben</button>
         </div>
     </div>
 </form>
@@ -88,21 +91,70 @@
 <script>
     let currentSlide = 0;
     const totalSlides = {{ questions|length }};
+    const immediateMode = {{ 'true' if immediate_solution else 'false' }};
+
+    function updateProgress() {
+        const percentage = ((currentSlide + 1) / totalSlides) * 100;
+        document.getElementById('quizProgress').style.width = percentage + '%';
+    }
+    updateProgress();
+
+    function processImmediateSolution() {
+        let slide = document.getElementById('slide-' + currentSlide);
+        let correctAnswers = slide.getAttribute('data-correct').split(',');
+        let options = slide.querySelectorAll('.btn-check');
+
+        options.forEach(opt => {
+            let container = document.getElementById('container_' + opt.name.split('_')[1] + '_' + opt.value);
+            opt.disabled = true;
+            container.classList.remove('btn-outline-secondary');
+
+            if (correctAnswers.includes(opt.value)) {
+                container.classList.add('pastel-success');
+            } else if (opt.checked) {
+                container.classList.add('pastel-danger');
+            } else {
+                container.classList.add('bg-light', 'text-muted');
+            }
+        });
+
+        document.getElementById('checkBtn').style.display = 'none';
+
+        if (currentSlide === totalSlides - 1) {
+            document.getElementById('submitBtn').style.display = 'block';
+        } else {
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+    }
 
     function changeSlide(direction) {
         document.getElementById('slide-' + currentSlide).style.display = 'none';
         currentSlide += direction;
         document.getElementById('slide-' + currentSlide).style.display = 'block';
 
-        document.getElementById('prevBtn').style.display = (currentSlide === 0) ? 'none' : 'block';
+        if (!immediateMode) {
+            document.getElementById('prevBtn').style.display = (currentSlide === 0) ? 'none' : 'block';
 
-        if (currentSlide === totalSlides - 1) {
-            document.getElementById('nextBtn').style.display = 'none';
-            document.getElementById('submitBtn').style.display = 'block';
+            if (currentSlide === totalSlides - 1) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'none';
+            }
         } else {
-            document.getElementById('nextBtn').style.display = 'block';
+            document.getElementById('prevBtn').style.display = 'none';
+            document.getElementById('checkBtn').style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'none';
         }
+
+        updateProgress();
+    }
+
+    function submitQuiz() {
+        document.querySelectorAll('.btn-check').forEach(opt => opt.disabled = false);
+        document.getElementById('quizForm').submit();
     }
 </script>
 
@@ -118,7 +170,7 @@
         if (distance <= 0) {
             clearInterval(timerInterval);
             document.getElementById("timerDisplay").innerText = "ZEIT ABGELAUFEN!";
-            document.getElementById("quizForm").submit();
+            submitQuiz();
             return;
         }
 

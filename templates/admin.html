@@ -9,19 +9,86 @@
 </div>
 
 <div class="row">
+    <!-- Kategorie Verwaltung -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">🗂️ Kategorien Verwaltung</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Bestehende Kategorien</h5>
+                        <ul class="list-group mb-3">
+                            {% for c in categories %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span>{{ c.name }}</span>
+                                        {% if c.is_for_guests %}<span class="badge bg-success ms-2">Gast-Sichtbar</span>{% endif %}
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ c.id }}">
+                                        ✏️ Bearbeiten
+                                    </button>
+                                </li>
+
+                                <!-- Modal Kategorie bearbeiten -->
+                                <div class="modal fade" id="editCategoryModal{{ c.id }}" tabindex="-1" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title">Kategorie bearbeiten</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                      </div>
+                                      <form method="POST" action="/admin/edit-category/{{ c.id }}">
+                                          <div class="modal-body">
+                                              <div class="mb-3">
+                                                  <label class="form-label">Name</label>
+                                                  <input type="text" name="name" class="form-control" value="{{ c.name }}" required>
+                                              </div>
+                                              <div class="form-check">
+                                                  <input class="form-check-input" type="checkbox" name="is_for_guests" value="true" id="guestCheck{{ c.id }}" {% if c.is_for_guests %}checked{% endif %}>
+                                                  <label class="form-check-label" for="guestCheck{{ c.id }}">Für Gäste sichtbar</label>
+                                              </div>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary">Speichern</button>
+                                          </div>
+                                      </form>
+                                    </div>
+                                  </div>
+                                </div>
+                            {% else %}
+                                <li class="list-group-item text-muted">Keine Kategorien vorhanden.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Neue Kategorie anlegen</h5>
+                        <form method="POST" action="/admin/create-category">
+                            <div class="input-group mb-2">
+                                <input type="text" name="name" class="form-control" placeholder="Kategoriename" required>
+                                <div class="input-group-text">
+                                    <input class="form-check-input mt-0 me-2" type="checkbox" name="is_for_guests" value="true"> Für Gäste sichtbar
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Kategorie erstellen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quiz Verwaltung -->
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header bg-dark text-white">📚 Quiz Verwaltung</div>
             <div class="card-body">
-                
                 <h5 class="mb-3">Bestehende Quizzes</h5>
                 <ul class="list-group mb-4">
                     {% for q in quizzes %}
                         <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div>
                                 <strong>ID {{ q.id }}:</strong> {{ q.title }} <br>
-                                <small class="text-muted">{{ q.time_limit_minutes }} Minuten</small>
+                                <small class="text-muted">{{ q.time_limit_minutes }} Minuten | Kategorie: {{ q.category.name if q.category else 'Keine' }}</small>
                             </div>
                             <div>
                                 <a href="/admin/quiz/{{ q.id }}/questions" class="btn btn-sm btn-outline-info me-2">📋 Fragen</a>
@@ -31,13 +98,13 @@
                             </div>
                         </li>
 
-                        <!-- Modal für die Bearbeitung des jeweiligen Quizzes -->
+                        <!-- Modal Quiz bearbeiten -->
                         <div class="modal fade" id="editQuizModal{{ q.id }}" tabindex="-1" aria-hidden="true">
                           <div class="modal-dialog">
                             <div class="modal-content">
                               <div class="modal-header">
                                 <h5 class="modal-title">Quiz bearbeiten</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                               </div>
                               <form method="POST" action="/admin/edit-quiz/{{ q.id }}">
                                   <div class="modal-body">
@@ -46,13 +113,20 @@
                                           <input type="text" name="title" class="form-control" value="{{ q.title }}" required>
                                       </div>
                                       <div class="mb-3">
+                                          <label class="form-label">Kategorie</label>
+                                          <select name="category_id" class="form-select">
+                                              <option value="">Keine Kategorie</option>
+                                              {% for c in categories %}
+                                                <option value="{{ c.id }}" {% if q.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                              {% endfor %}
+                                          </select>
+                                      </div>
+                                      <div class="mb-3">
                                           <label class="form-label">Zeitlimit (Minuten)</label>
                                           <input type="number" name="time_limit" class="form-control" value="{{ q.time_limit_minutes }}" required>
-                                          <small class="text-muted">0 für unbegrenzte Zeit</small>
                                       </div>
                                   </div>
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
                                     <button type="submit" class="btn btn-primary">Speichern</button>
                                   </div>
                               </form>
@@ -69,10 +143,18 @@
                 <h5 class="mb-3">Neues Quiz anlegen</h5>
                 <form method="POST" action="/admin/create-quiz" class="mb-4">
                     <div class="row g-2">
-                        <div class="col-8">
-                            <input type="text" name="title" class="form-control" placeholder="Neuer Quiz Titel" required>
+                        <div class="col-12">
+                            <input type="text" name="title" class="form-control" placeholder="Quiz Titel" required>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
+                            <select name="category_id" class="form-select">
+                                <option value="">Kategorie wählen...</option>
+                                {% for c in categories %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
                             <input type="number" name="time_limit" class="form-control" placeholder="Minuten (0=endlos)" required>
                         </div>
                         <div class="col-12 mt-2">
@@ -80,9 +162,9 @@
                         </div>
                     </div>
                 </form>
-                
+
                 <hr>
-                
+
                 <h5 class="mb-3">Fragen per CSV importieren</h5>
                 <form method="POST" action="/admin/upload-csv" enctype="multipart/form-data">
                     <div class="mb-2">
@@ -107,6 +189,61 @@
         <div class="card h-100">
             <div class="card-header bg-dark text-white">👥 Benutzerverwaltung</div>
             <div class="card-body">
+
+                <h5 class="mb-3 text-primary"><i class="bi bi-person-plus-fill"></i> Ausstehende Freischaltungen</h5>
+                <ul class="list-group mb-4">
+                    {% for req in requests %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ req.first_name }} {{ req.last_name }} ({{ req.username }})</strong><br>
+                                <small class="text-muted">{{ req.usage_intent }} | {{ req.email }}</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ req.id }}">Freischalten</button>
+                                <form method="POST" action="/admin/reject-request/{{ req.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Ablehnen</button>
+                                </form>
+                            </div>
+                        </li>
+
+                        <!-- Modal Freischaltung -->
+                        <div class="modal fade" id="approveModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title">Account freischalten</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                              </div>
+                              <form method="POST" action="/admin/approve-request/{{ req.id }}">
+                                  <div class="modal-body">
+                                      <p>Benutzer: <strong>{{ req.username }}</strong></p>
+                                      <label class="form-label fw-bold">Welche Kategorien sollen freigegeben werden?</label>
+                                      <div class="bg-light p-3 border rounded">
+                                          {% set req_cats = req.requested_categories.split(',') if req.requested_categories else [] %}
+                                          {% for c in categories %}
+                                          <div class="form-check">
+                                              <input class="form-check-input" type="checkbox" name="category_ids" value="{{ c.id }}" id="app_cat_{{ req.id }}_{{ c.id }}" {% if c.id|string in req_cats %}checked{% endif %}>
+                                              <label class="form-check-label" for="app_cat_{{ req.id }}_{{ c.id }}">{{ c.name }}</label>
+                                          </div>
+                                          {% endfor %}
+                                      </div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                    <button type="submit" class="btn btn-success">Freischalten & E-Mail senden</button>
+                                  </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                    {% else %}
+                        <li class="list-group-item text-muted small">Keine offenen Anfragen vorhanden.</li>
+                    {% endfor %}
+                </ul>
+
+                <hr>
+
+                <h5 class="mb-3">Neuen Benutzer direkt anlegen</h5>
                 <form method="POST" action="/admin/create-user" class="mb-4">
                     <div class="input-group mb-2">
                         <input type="text" name="username" class="form-control" placeholder="Benutzername" required autocorrect="off" autocapitalize="off">
@@ -114,22 +251,55 @@
                             <input class="form-check-input mt-0 me-2" type="checkbox" name="is_admin" value="true"> Admin
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Benutzer anlegen (Passwort: QuizMaster#112)</button>
+                    <button type="submit" class="btn btn-primary w-100">Benutzer anlegen</button>
                 </form>
-                
+
                 <hr>
-                
-                <h5>Registrierte Benutzer</h5>
+
+                <h5 class="mb-3">Registrierte Benutzer</h5>
                 <ul class="list-group">
                     {% for u in users %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ u.username }}
-                            {% if u.is_admin %}
-                                <span class="badge bg-danger rounded-pill">Admin</span>
-                            {% else %}
-                                <span class="badge bg-secondary rounded-pill">User</span>
-                            {% endif %}
+                            <div>
+                                {{ u.username }}
+                                {% if u.is_admin %}
+                                    <span class="badge bg-danger rounded-pill">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill">User</span>
+                                {% endif %}
+                                <div class="small text-muted mt-1">
+                                    Freigaben:
+                                    {% for c in u.categories %} {{ c.name }}{% if not loop.last %}, {% endif %}
+                                    {% else %} Keine {% endfor %}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ u.id }}">Freigaben</button>
                         </li>
+
+                        <!-- Modal User Kategorien -->
+                        <div class="modal fade" id="editUserModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Kategorien für {{ u.username }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                              </div>
+                              <form method="POST" action="/admin/edit-user-categories/{{ u.id }}">
+                                  <div class="modal-body">
+                                      {% for c in categories %}
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="checkbox" name="category_ids" value="{{ c.id }}" id="cat_{{ u.id }}_{{ c.id }}" {% if c in u.categories %}checked{% endif %}>
+                                          <label class="form-check-label" for="cat_{{ u.id }}_{{ c.id }}">{{ c.name }}</label>
+                                      </div>
+                                      {% endfor %}
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Speichern</button>
+                                  </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
                     {% endfor %}
                 </ul>
             </div>
